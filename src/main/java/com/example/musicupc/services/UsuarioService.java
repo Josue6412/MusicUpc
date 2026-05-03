@@ -72,4 +72,8 @@ public class UsuarioService {
         Usuario usuario = listarPorId(id);
         usuarioRepo.delete(usuario);
     }
+
+    public List<Usuario> buscarPorNombre(String nombre) {
+        return usuarioRepo.findByNombreContainingIgnoreCase(nombre);
+    }
 }

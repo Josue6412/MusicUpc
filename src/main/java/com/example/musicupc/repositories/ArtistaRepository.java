@@ -1,0 +1,11 @@
+package com.example.musicupc.repositories;
+
+import com.example.musicupc.entities.Artista;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface ArtistaRepository extends JpaRepository<Artista, Long> {
+    List<Artista> findByNombreArtisticoContainingIgnoreCase(String nombre);
+    boolean existsByRegionId(Long regionId);
+}
