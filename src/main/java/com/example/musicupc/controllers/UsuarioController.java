@@ -44,6 +44,12 @@ public class UsuarioController {
         usuarioService.eliminar(id);
     }
 
+    @GetMapping("/buscar")
+    public List<UsuarioDTOList> buscarPorNombre(@RequestParam String nombre) {
+        return usuarioService.buscarPorNombre(nombre)
+                .stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
     private UsuarioDTOList convertToDTO(Usuario usuario) {
         return new UsuarioDTOList(
                 usuario.getId(),
