@@ -1,0 +1,80 @@
+package com.example.musicupc.controllers;
+
+import com.example.musicupc.dtos.ArtistaDTOInsert;
+import com.example.musicupc.dtos.ArtistaDTOList;
+import com.example.musicupc.entities.Artista;
+import com.example.musicupc.services.ArtistaService;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/artistas")
+public class ArtistaController {
+
+    private final ArtistaService artistaService;
+    public ArtistaController(ArtistaService artistaService) {
+        this.artistaService = artistaService;
+    }
+
+    @GetMapping
+    public List<ArtistaDTOList> listar(){
+        return artistaService.listar().stream().map(this::convertToDTO).toList();
+    }
+
+    @GetMapping("/{id}")
+    public ArtistaDTOList listarPorId(@PathVariable Long id){
+        return convertToDTO(artistaService.listarPorId(id));
+    }
+
+    @PostMapping
+    public ArtistaDTOList insertar(@RequestBody ArtistaDTOInsert dto) {
+        Artista artista = convertToEntity(dto);
+
+        return convertToDTO(
+                artistaService.registrar(artista, dto.getGenerosIds(), dto.getRegionId())
+        );
+    }
+
+    @PutMapping("/{id}")
+    public ArtistaDTOList actualizar(@PathVariable Long id, @RequestBody ArtistaDTOInsert dto) {
+        Artista artista = convertToEntity(dto);
+
+        return convertToDTO(
+                artistaService.actualizar(id, artista, dto.getGenerosIds(), dto.getRegionId())
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public void eliminar(@PathVariable Long id) {
+        artistaService.eliminar(id);
+    }
+
+    @GetMapping("/buscar")
+    public List<ArtistaDTOList> buscar(@RequestParam String nombre) {
+        return artistaService.buscarPorNombre(nombre).stream().map(this::convertToDTO).toList();
+    }
+
+    private ArtistaDTOList convertToDTO(Artista artista) {
+        return new ArtistaDTOList(
+                artista.getId(),
+                artista.getNombreArtistico(),
+                artista.getBio(),
+                artista.getGeneros().stream().map(g -> g.getNombre()).toList(),
+                artista.getRegion().getNombre(),
+                artista.isDisponibilidad(),
+                artista.getPrecioBase(),
+                artista.getAniosExperiencia()
+        );
+    }
+
+    private Artista convertToEntity(ArtistaDTOInsert dto) {
+        Artista artista = new Artista();
+        artista.setNombreArtistico(dto.getNombreArtistico());
+        artista.setBio(dto.getBio());
+        artista.setDisponibilidad(dto.isDisponible());
+        artista.setPrecioBase(dto.getPrecioBase());
+        artista.setFechaInicioCarrera(dto.getFechaInicioCarrera());
+        return artista;
+    }
+}
