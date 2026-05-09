@@ -18,18 +18,18 @@ public class Notificacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "title", nullable = false)
-    private String title;
-    @Column(name = "message", nullable = false)
-    private String message;
-    @Column(name = "type", nullable = false)
-    private String type;
-    @Column(name = "is_read", nullable = false)
-    private boolean is_read;
-    @Column(name = "created_at", nullable = false)
-    private LocalDate created_at;
+    @Column(name = "titulo", nullable = false)
+    private String titulo;
+    @Column(name = "mensaje", nullable = false)
+    private String mensaje;
+    @Column(name = "tipo", nullable = false)
+    private String tipo;
+    @Column(name = "leido", nullable = false)
+    private boolean leido;
+    @Column(name = "fecha_creacion", nullable = false)
+    private LocalDate fecha_creacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 }

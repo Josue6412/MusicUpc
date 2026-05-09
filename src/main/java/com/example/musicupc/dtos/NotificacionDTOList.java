@@ -6,20 +6,17 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SuscripcionDTOResponse {
+public class NotificacionDTOList {
 
     private Long id;
-    private Long user_id;
-    private String plan_type;
-    private double price;
-    private LocalDate start_date;
-    private LocalDate end_date;
-    private String status;
-    private LocalDate timestamp;
-
+    private Long usuario_id;
+    private String titulo;
+    private String mensaje;
+    private String tipo;
+    private boolean leido;
+    private LocalDate fecha_creacion;
 }
