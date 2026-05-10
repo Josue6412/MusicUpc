@@ -4,6 +4,8 @@ import com.example.musicupc.dtos.ArtistaDTOInsert;
 import com.example.musicupc.dtos.ArtistaDTOList;
 import com.example.musicupc.entities.Artista;
 import com.example.musicupc.services.ArtistaService;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,17 +20,21 @@ public class ArtistaController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<ArtistaDTOList> listar(){
         return artistaService.listar().stream().map(this::convertToDTO).toList();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ArtistaDTOList listarPorId(@PathVariable Long id){
         return convertToDTO(artistaService.listarPorId(id));
     }
 
     @PostMapping
-    public ArtistaDTOList insertar(@RequestBody ArtistaDTOInsert dto) {
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ArtistaDTOList registrar(@RequestBody ArtistaDTOInsert dto) {
         Artista artista = convertToEntity(dto);
 
         return convertToDTO(
@@ -37,6 +43,7 @@ public class ArtistaController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ArtistaDTOList actualizar(@PathVariable Long id, @RequestBody ArtistaDTOInsert dto) {
         Artista artista = convertToEntity(dto);
 
@@ -46,13 +53,22 @@ public class ArtistaController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable Long id) {
         artistaService.eliminar(id);
     }
 
     @GetMapping("/buscar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<ArtistaDTOList> buscar(@RequestParam String nombre) {
         return artistaService.buscarPorNombre(nombre).stream().map(this::convertToDTO).toList();
+    }
+
+    @GetMapping("/disponibles")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public List<ArtistaDTOList> buscarDisponibles() {
+        return artistaService.buscarDisponibles().stream().map(this::convertToDTO).toList();
     }
 
     private ArtistaDTOList convertToDTO(Artista artista) {
@@ -60,8 +76,8 @@ public class ArtistaController {
                 artista.getId(),
                 artista.getNombreArtistico(),
                 artista.getBio(),
-                artista.getGeneros().stream().map(g -> g.getNombre()).toList(),
-                artista.getRegion().getNombre(),
+                artista.getGeneros() != null ? artista.getGeneros().stream().map(g -> g.getNombre()).toList() : List.of(),
+                artista.getRegion() != null  ? artista.getRegion().getNombre() : null,
                 artista.isDisponibilidad(),
                 artista.getPrecioBase(),
                 artista.getAniosExperiencia()
