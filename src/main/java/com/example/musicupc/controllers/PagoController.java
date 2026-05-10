@@ -5,6 +5,7 @@ import com.example.musicupc.dtos.PagoDTOList;
 import com.example.musicupc.entities.Pago;
 import com.example.musicupc.entities.Reserva;
 import com.example.musicupc.services.PagoService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,11 +22,13 @@ public class PagoController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<PagoDTOList> listar() {
         return pagoService.listar().stream().map(this::convertirADTO).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public PagoDTOList listarPorId(@PathVariable Long id) {
         return convertirADTO(pagoService.listarPorId(id));
     }
@@ -37,12 +40,14 @@ public class PagoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public PagoDTOList actualizar(@PathVariable Long id, @RequestBody PagoDTOInsert dto) {
         Pago pago = convertirAEntidad(dto);
         return convertirADTO(pagoService.actualizar(id, pago));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public void eliminar(@PathVariable Long id) {
         pagoService.eliminar(id);
     }
