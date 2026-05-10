@@ -5,6 +5,7 @@ import com.example.musicupc.dtos.NotificacionDTOList;
 import com.example.musicupc.entities.Notificacion;
 import com.example.musicupc.entities.Usuario;
 import com.example.musicupc.services.NotificacionService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ public class NotificacionController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<NotificacionDTOList> listar() {
         return notificacionService.listar().stream()
                 .map(this::convertirADTO)
@@ -29,11 +31,13 @@ public class NotificacionController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public NotificacionDTOList listarPorId(@PathVariable Long id) {
         return convertirADTO(notificacionService.listarPorId(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public NotificacionDTOList registrar(@RequestBody NotificacionDTOInsert dto) {
         Notificacion notificacion = convertirAEntidad(dto);
         // Seteamos la fecha de creación actual al registrar
@@ -43,12 +47,14 @@ public class NotificacionController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public NotificacionDTOList actualizar(@PathVariable Long id, @RequestBody NotificacionDTOInsert dto) {
         Notificacion notificacion = convertirAEntidad(dto);
         return convertirADTO(notificacionService.actualizar(id, notificacion));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public void eliminar(@PathVariable Long id) {
         notificacionService.eliminar(id);
     }
