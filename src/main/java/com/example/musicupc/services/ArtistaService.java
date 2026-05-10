@@ -6,7 +6,9 @@ import com.example.musicupc.entities.Region;
 import com.example.musicupc.repositories.ArtistaRepository;
 import com.example.musicupc.repositories.GeneroRepository;
 import com.example.musicupc.repositories.RegionRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -27,19 +29,25 @@ public class ArtistaService {
     }
 
     public Artista listarPorId(Long id) {
-        return artistaRepo.findById(id).orElseThrow(()->new RuntimeException("No existe el artista con id: " + id));
+        return artistaRepo.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el artista con id: " + id));
     }
 
     public Artista registrar(Artista artista, List<Long> generosIds, Long regionId) {
         if (artista.getBio().split("\\s+").length > 100) {
-            throw new RuntimeException("La bio no puede tener más de 100 palabras.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La bio no puede tener más de 100 palabras.");
         }
 
         Region region = regionRepo.findById(regionId)
-                .orElseThrow(()->new RuntimeException("Región no encontrada"));
+                .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "Región no encontrada"));
         artista.setRegion(region);
 
         List<Genero> generos = generoRepo.findAllById(generosIds);
+        if (generos.size() != generosIds.size()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Uno o más géneros no existen."
+            );
+        }
         artista.setGeneros(generos);
 
         return artistaRepo.save(artista);
@@ -55,7 +63,7 @@ public class ArtistaService {
         existente.setFechaInicioCarrera(artista.getFechaInicioCarrera());
 
         Region region = regionRepo.findById(regionId)
-                .orElseThrow(() -> new RuntimeException("Región no encontrada"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Región no encontrada"));
         existente.setRegion(region);
 
         List<Genero> generos = generoRepo.findAllById(generosIds);
@@ -71,5 +79,16 @@ public class ArtistaService {
 
     public List<Artista> buscarPorNombre(String nombre) {
         return artistaRepo.findByNombreArtisticoContainingIgnoreCase(nombre);
+    }
+
+    public List<Artista> buscarDisponibles() {
+
+        List<Artista> artistas = artistaRepo.findByDisponibilidadTrue();
+
+        if (artistas.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay artistas disponibles.");
+        }
+
+        return artistas;
     }
 }

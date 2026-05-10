@@ -4,6 +4,8 @@ import com.example.musicupc.dtos.UsuarioDTOInsert;
 import com.example.musicupc.dtos.UsuarioDTOList;
 import com.example.musicupc.entities.Usuario;
 import com.example.musicupc.services.UsuarioService;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,36 +20,50 @@ public class UsuarioController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<UsuarioDTOList> listar() {
-        return usuarioService.listar().stream().map(this::convertToDTO).collect(Collectors.toList());
+        return usuarioService.listar().stream().map(this::convertToDTO).toList();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public UsuarioDTOList listarPorId(@PathVariable Long id) {
         return convertToDTO(usuarioService.listarPorId(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @ResponseStatus(HttpStatus.CREATED)
     public UsuarioDTOList registrar(@RequestBody UsuarioDTOInsert dto) {
         Usuario usuario = convertToEntity(dto);
         return convertToDTO(usuarioService.registrar(usuario));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public UsuarioDTOList actualizar(@PathVariable Long id, @RequestBody UsuarioDTOInsert dto) {
         Usuario usuario = convertToEntity(dto);
         return convertToDTO(usuarioService.actualizar(id, usuario));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable Long id) {
         usuarioService.eliminar(id);
     }
 
     @GetMapping("/buscar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<UsuarioDTOList> buscarPorNombre(@RequestParam String nombre) {
         return usuarioService.buscarPorNombre(nombre)
                 .stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
+    @GetMapping("/rol")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public List<UsuarioDTOList> buscarPorRol(@RequestParam String rol) {
+        return usuarioService.buscarPorRol(rol).stream().map(this::convertToDTO).toList();
     }
 
     private UsuarioDTOList convertToDTO(Usuario usuario) {
