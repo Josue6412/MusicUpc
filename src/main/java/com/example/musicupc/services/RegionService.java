@@ -1,9 +1,12 @@
 package com.example.musicupc.services;
 
+import com.example.musicupc.dtos.RegionArtistasDTO;
 import com.example.musicupc.entities.Region;
 import com.example.musicupc.repositories.ArtistaRepository;
 import com.example.musicupc.repositories.RegionRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -23,18 +26,48 @@ public class RegionService {
 
     public Region listarPorId(Long id) {
         return regionRepo.findById(id).
-                orElseThrow(() -> new RuntimeException("No existe la región con id: " + id));
+                orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"No existe la región con id: " + id));
     }
 
     public Region insertar(Region region) {
         if (region.getNombre() == null || region.getNombre().isBlank()) {
-            throw new IllegalArgumentException("El nombre es obligatorio");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"El nombre es obligatorio");
+        }
+        if (region.getDepartamento() == null || region.getDepartamento().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El departamento es obligatorio.");
+        }
+        if (regionRepo.existsByNombreIgnoreCaseAndDepartamentoIgnoreCase(region.getNombre(), region.getDepartamento())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "La región ya existe.");
         }
         return regionRepo.save(region);
     }
 
     public Region actualizar(Long id, Region region) {
         Region existente =  listarPorId(id);
+
+        if (region.getNombre() == null || region.getNombre().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre es obligatorio.");
+        }
+
+        if (region.getDepartamento() == null || region.getDepartamento().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El departamento es obligatorio.");
+        }
+        boolean existeDuplicado = regionRepo.existsByNombreIgnoreCaseAndDepartamentoIgnoreCase(
+                        region.getNombre(),
+                        region.getDepartamento()
+                );
+
+        boolean mismoRegistro =
+                existente.getNombre().equalsIgnoreCase(region.getNombre()) &&
+                        existente.getDepartamento().equalsIgnoreCase(region.getDepartamento());
+
+        if (existeDuplicado && !mismoRegistro) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "La región ya existe."
+            );
+        }
 
         existente.setNombre(region.getNombre());
         existente.setDepartamento(region.getDepartamento());
@@ -44,7 +77,7 @@ public class RegionService {
 
     public void eliminar(Long id) {
         if (artistaRepo.existsByRegionId(id)) {
-            throw new RuntimeException("No se puede eliminar la región porque tiene artistas asociados");
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"No se puede eliminar la región porque tiene artistas asociados");
         }
 
         Region region = listarPorId(id);
@@ -53,5 +86,16 @@ public class RegionService {
 
     public List<Region> buscarPorNombre(String nombre) {
         return regionRepo.findByNombreContainingIgnoreCase(nombre);
+    }
+
+    public List<RegionArtistasDTO> contarArtistasPorRegion() {
+
+        List<RegionArtistasDTO> resultados = regionRepo.contarArtistasPorRegion();
+
+        if (resultados.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No existen regiones registradas.");
+        }
+
+        return resultados;
     }
 }
