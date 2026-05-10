@@ -6,9 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "terminos")
@@ -32,7 +30,7 @@ public class Terminos {
     @Column(name = "status", length = 50)
     private String status;
 
-    @Column(name = "fecha_creacion", length = 30)
+    @Column(name = "fecha_confirmacion", length = 30)
     private LocalDate fecha_confirmacion;
 
     @Column(name = "fecha_creacion", length = 100)
