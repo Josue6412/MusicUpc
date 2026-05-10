@@ -91,7 +91,7 @@ public class UsuarioService {
 
     public List<Usuario> buscarPorRol(String rol) {
 
-        List<Usuario> usuarios = usuarioRepo.findByRolIgnoreCase(rol);
+        List<Usuario> usuarios = usuarioRepo.findByRolContainingIgnoreCase(rol);
 
         if (usuarios.isEmpty()) {
 
