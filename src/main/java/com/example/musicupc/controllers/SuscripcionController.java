@@ -5,6 +5,7 @@ import com.example.musicupc.dtos.SuscripcionDTOList;
 import com.example.musicupc.entities.Suscripcion;
 import com.example.musicupc.entities.Usuario;
 import com.example.musicupc.services.SuscripcionService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ public class SuscripcionController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<SuscripcionDTOList> listar() {
         return suscripcionService.listar().stream()
                 .map(this::convertirADTO)
@@ -29,11 +31,13 @@ public class SuscripcionController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public SuscripcionDTOList listarPorId(@PathVariable Long id) {
         return convertirADTO(suscripcionService.listarPorId(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public SuscripcionDTOList registrar(@RequestBody SuscripcionDTOInsert dto) {
         Suscripcion suscripcion = convertirAEntidad(dto);
 
@@ -46,12 +50,14 @@ public class SuscripcionController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public SuscripcionDTOList actualizar(@PathVariable Long id, @RequestBody SuscripcionDTOInsert dto) {
         Suscripcion suscripcion = convertirAEntidad(dto);
         return convertirADTO(suscripcionService.actualizar(id, suscripcion));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public void eliminar(@PathVariable Long id) {
         suscripcionService.eliminar(id);
     }
