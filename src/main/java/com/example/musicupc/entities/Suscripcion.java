@@ -18,21 +18,21 @@ public class Suscripcion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "plan_type", nullable = false)
-    private String plan_type;
-    @Column(name = "price", nullable = false)
-    private double price;
-    @Column(name = "start_date", nullable = false)
-    private LocalDate start_date;
-    @Column(name = "end_date", nullable = false)
-    private LocalDate end_date;
-    @Column(name = "status", nullable = false)
-    private String status;
-    @Column(name = "timestamp", nullable = false)
-    private LocalDate timestamp;
+    @Column(name = "tipo_plan", nullable = false)
+    private String tipo_plan;
+    @Column(name = "precio", nullable = false)
+    private double precio;
+    @Column(name = "fecha_inicio", nullable = false)
+    private LocalDate fecha_inicio;
+    @Column(name = "fecha_fin", nullable = false)
+    private LocalDate fecha_fin;
+    @Column(name = "estado", nullable = false)
+    private String estado;
+    @Column(name = "fecha_creacion", nullable = false)
+    private LocalDate fecha_creacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
 

@@ -2,7 +2,9 @@ package com.example.musicupc.services;
 
 import com.example.musicupc.entities.Reserva;
 import com.example.musicupc.repositories.ReservaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -45,5 +47,19 @@ public class ReservaService {
 
     public void eliminar(Long id) {
         reservaRepository.deleteById(id);
+    }
+
+    public List<Reserva> buscarReservasPorUsuario(Long id) {
+
+        List<Reserva> reservas = reservaRepository.buscarReservasPorUsuario(id);
+
+        if (reservas.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "El usuario con id " + id + " no tiene reservas."
+            );
+        }
+
+        return reservas;
     }
 }

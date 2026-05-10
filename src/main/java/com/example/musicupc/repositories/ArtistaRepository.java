@@ -8,4 +8,6 @@ import java.util.List;
 public interface ArtistaRepository extends JpaRepository<Artista, Long> {
     List<Artista> findByNombreArtisticoContainingIgnoreCase(String nombre);
     boolean existsByRegionId(Long regionId);
+
+    List<Artista> findByDisponibilidadTrue();
 }
