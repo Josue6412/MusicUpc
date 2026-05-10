@@ -20,19 +20,19 @@ public class UsuarioController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
     public List<UsuarioDTOList> listar() {
         return usuarioService.listar().stream().map(this::convertToDTO).toList();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','USUARIO')")
     public UsuarioDTOList listarPorId(@PathVariable Long id) {
         return convertToDTO(usuarioService.listarPorId(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
     @ResponseStatus(HttpStatus.CREATED)
     public UsuarioDTOList registrar(@RequestBody UsuarioDTOInsert dto) {
         Usuario usuario = convertToEntity(dto);
