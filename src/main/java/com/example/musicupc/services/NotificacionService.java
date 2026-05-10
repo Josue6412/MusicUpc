@@ -4,6 +4,7 @@ import com.example.musicupc.entities.Notificacion;
 import com.example.musicupc.repositories.NotificacionRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -29,28 +30,28 @@ public class NotificacionService {
             throw new IllegalArgumentException("El ID de usuario es obligatorio.");
         }
 
-        if (notificacion.getTitle() == null || notificacion.getTitle().isBlank()) {
+        if (notificacion.getTitulo() == null || notificacion.getTitulo().isBlank()) {
             throw new IllegalArgumentException("El título es obligatorio.");
         }
-        if (notificacion.getTitle().length() > 200) {
+        if (notificacion.getTitulo().length() > 200) {
             throw new IllegalArgumentException("El título no puede exceder los 200 caracteres.");
         }
 
-        if (notificacion.getMessage() == null || notificacion.getMessage().isBlank()) {
+        if (notificacion.getMensaje() == null || notificacion.getMensaje().isBlank()) {
             throw new IllegalArgumentException("El mensaje de la notificación es obligatorio.");
         }
 
-        if (notificacion.getType() == null || notificacion.getType().isBlank()) {
+        if (notificacion.getTipo() == null || notificacion.getTipo().isBlank()) {
             throw new IllegalArgumentException("El tipo de notificación es obligatorio.");
         }
-        if (notificacion.getType().length() > 50) {
+        if (notificacion.getTipo().length() > 50) {
             throw new IllegalArgumentException("El tipo no puede exceder los 50 caracteres.");
         }
 
         // Asignar fecha de creación si no viene establecida
-        if (notificacion.getCreated_at() == null) {
+        if (notificacion.getFecha_creacion() == null) {
             // Nota: Se recomienda usar LocalDateTime para timestamps
-            notificacion.setCreated_at(java.time.LocalDate.now());
+            notificacion.setFecha_creacion(LocalDate.now());
         }
 
         return notificacionRepo.save(notificacion);
@@ -59,10 +60,10 @@ public class NotificacionService {
     public Notificacion actualizar(Long id, Notificacion notificacion) {
         Notificacion existente = listarPorId(id);
 
-        existente.setTitle(notificacion.getTitle());
-        existente.setMessage(notificacion.getMessage());
-        existente.setType(notificacion.getType());
-        existente.set_read(notificacion.is_read()); // Ajustado a CamelCase
+        existente.setTitulo(notificacion.getTitulo());
+        existente.setMensaje(notificacion.getMensaje());
+        existente.setTipo(notificacion.getTipo());
+        existente.setLeido(notificacion.isLeido()); // Ajustado a CamelCase
 
         // Corregido: Debes pasar el objeto Usuario, no un ID
         if (notificacion.getUsuario() != null) {

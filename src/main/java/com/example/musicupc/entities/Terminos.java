@@ -1,0 +1,41 @@
+package com.example.musicupc.entities;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "terminos")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class Terminos {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "reserva_id", nullable = false)
+    private Reserva reservaId;
+
+    @Column(name = "terminos", precision = 10, scale = 2, nullable = false)
+    private String terminos;
+
+    @Column(name = "status", length = 50)
+    private String status;
+
+    @Column(name = "fecha_creacion", length = 30)
+    private LocalDate fecha_confirmacion;
+
+    @Column(name = "fecha_creacion", length = 100)
+    private LocalDate fecha_creacion;
+
+}

@@ -1,25 +1,21 @@
 package com.example.musicupc.dtos;
 
-import com.example.musicupc.entities.Usuario;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SuscripcionDTORequest {
-
+public class TerminoDTOList {
     private Long id;
-    private String plan_type;
-    private double price;
-    private LocalDate start_date;
-    private LocalDate end_date;
+    private Long reservaId;
+    private String terminos;
     private String status;
-    private LocalDate timestamp;
-
+    private LocalDate fecha_confirmacion;
+    private LocalDate fecha_creacion;
 }
