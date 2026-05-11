@@ -22,6 +22,23 @@ public class ReseñaController {
         this.reseñaService = reseñaService;
     }
 
+    // Lista las reseñas de un usuario, ordenadas por fecha de creación desc
+    @GetMapping("/usuario/{usuarioId}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public List<ReseñaDTOList> listarPorUsuario(@PathVariable Long usuarioId) {
+        return reseñaService.listarPorUsuario(usuarioId)
+                .stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+    }
+
+    // Devuelve el promedio de rating de una reserva (0.0 si no hay reseñas)
+    @GetMapping("/reserva/{reservaId}/promedio")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public Double obtenerPromedioRatingPorReserva(@PathVariable Long reservaId) {
+        return reseñaService.obtenerPromedioRatingPorReserva(reservaId);
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public List<ReseñaDTOList> listar() {
