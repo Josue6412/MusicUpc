@@ -23,6 +23,17 @@ public class ReseñaService {
         return reseñaRepository.findById(id).orElseThrow(() -> new RuntimeException("Reseña no encontrada"));
     }
 
+    // Nuevo: listar reseñas por usuario, ordenadas por fecha de creación descendente
+    public List<Reseña> listarPorUsuario(Long usuarioId) {
+        return reseñaRepository.findByUsuarioIdOrderByFechaCreacionDesc(usuarioId);
+    }
+
+    // Nuevo: obtener promedio de rating por reserva (si no hay reseñas, retorna 0.0)
+    public Double obtenerPromedioRatingPorReserva(Long reservaId) {
+        Double promedio = reseñaRepository.calcularPromedioRatingPorReserva(reservaId);
+        return promedio != null ? promedio : 0.0;
+    }
+
     public Reseña registrar(Reseña reseña) {
         if (reseña.getRating() == null || reseña.getRating() < 1 || reseña.getRating() > 5) {
             throw new RuntimeException("El rating debe estar entre 1 y 5");
