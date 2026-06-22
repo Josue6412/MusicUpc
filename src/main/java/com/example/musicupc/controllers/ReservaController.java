@@ -5,9 +5,13 @@ import com.example.musicupc.dtos.ReservaDTOList;
 import com.example.musicupc.dtos.ReservaUsuarioDTO;
 import com.example.musicupc.entities.Reserva;
 import com.example.musicupc.entities.Usuario;
+import com.example.musicupc.repositories.UsuarioRepository;
 import com.example.musicupc.services.ReservaService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,9 +21,11 @@ import java.util.stream.Collectors;
 public class ReservaController {
 
     private final ReservaService reservaService;
+    private final UsuarioRepository usuarioRepo;
 
-    public ReservaController(ReservaService reservaService) {
+    public ReservaController(ReservaService reservaService, UsuarioRepository usuarioRepo) {
         this.reservaService = reservaService;
+        this.usuarioRepo = usuarioRepo;
     }
 
     @GetMapping
@@ -35,9 +41,24 @@ public class ReservaController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ReservaDTOList registrar(@RequestBody ReservaDTOInsert dto) {
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
+    public ReservaDTOList registrar(@RequestBody ReservaDTOInsert dto, Authentication authentication) {
+        boolean esAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
+
         Reserva reserva = convertirAEntidad(dto);
+
+        // Un USUARIO solo puede reservar a su propio nombre (ignora el clienteId
+        // que venga en la petición y usa el suyo).
+        if (!esAdmin) {
+            Usuario yo = usuarioRepo.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.UNAUTHORIZED, "Sesión no válida."));
+            Usuario cliente = new Usuario();
+            cliente.setId(yo.getId());
+            reserva.setCliente(cliente);
+        }
+
         return convertirADTO(reservaService.registrar(reserva));
     }
 
@@ -55,7 +76,7 @@ public class ReservaController {
     }
 
     @GetMapping("/usuario/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasRole('ADMINISTRADOR') or @accountSecurity.isSelf(#id, authentication)")
     public List<ReservaUsuarioDTO> buscarReservasPorUsuario(@PathVariable Long id) {
 
         return reservaService.buscarReservasPorUsuario(id)

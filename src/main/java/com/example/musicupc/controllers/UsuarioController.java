@@ -6,6 +6,7 @@ import com.example.musicupc.entities.Usuario;
 import com.example.musicupc.services.UsuarioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,10 +41,14 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public UsuarioDTOList actualizar(@PathVariable Long id, @RequestBody UsuarioDTOInsert dto) {
+    @PreAuthorize("hasRole('ADMINISTRADOR') or @accountSecurity.isSelf(#id, authentication)")
+    public UsuarioDTOList actualizar(@PathVariable Long id,
+                                     @RequestBody UsuarioDTOInsert dto,
+                                     Authentication authentication) {
+        boolean esAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
         Usuario usuario = convertToEntity(dto);
-        return convertToDTO(usuarioService.actualizar(id, usuario));
+        return convertToDTO(usuarioService.actualizar(id, usuario, esAdmin));
     }
 
     @DeleteMapping("/{id}")

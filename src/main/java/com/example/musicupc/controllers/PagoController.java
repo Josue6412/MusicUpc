@@ -34,6 +34,7 @@ public class PagoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
     public PagoDTOList registrar(@RequestBody PagoDTOInsert dto) {
         Pago pago = convertirAEntidad(dto);
         return convertirADTO(pagoService.registrar(pago));

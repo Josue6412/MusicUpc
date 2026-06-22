@@ -65,16 +65,52 @@ public class UsuarioService {
         return usuarioRepo.save(usuario);
     }
 
-    public Usuario actualizar(Long id, Usuario usuario) {
+    /** Registro público: la cuenta SIEMPRE se crea con rol USUARIO. */
+    public Usuario registrarComoUsuario(Usuario usuario) {
+        usuario.setRol("USUARIO");
+        return registrar(usuario);
+    }
+
+    /** Recuperación sin correo: valida email + DNI y fija una nueva contraseña. */
+    public void recuperarContrasena(String email, String dni, String nuevaContrasena) {
+        if (email == null || email.isBlank() || dni == null || dni.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email y DNI son obligatorios.");
+        }
+        if (nuevaContrasena == null || nuevaContrasena.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La nueva contraseña es obligatoria.");
+        }
+        Usuario usuario = usuarioRepo.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "No existe una cuenta con ese email."));
+        if (!dni.equals(usuario.getDni())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El DNI no coincide con la cuenta indicada.");
+        }
+        usuario.setContrasena(passwordEncoder.encode(nuevaContrasena));
+        usuarioRepo.save(usuario);
+    }
+
+    public Usuario actualizar(Long id, Usuario usuario, boolean puedeCambiarRol) {
         Usuario existente = listarPorId(id);
 
         existente.setNombre(usuario.getNombre());
         existente.setApellido(usuario.getApellido());
         existente.setEmail(usuario.getEmail());
-        existente.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
+
+        // Solo se cambia la contraseña si se envió una nueva (si va vacía,
+        // se conserva la actual; antes se sobrescribía y bloqueaba la cuenta).
+        if (usuario.getContrasena() != null && !usuario.getContrasena().isBlank()) {
+            existente.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
+        }
+
         existente.setTelefono(usuario.getTelefono());
         existente.setDni(usuario.getDni());
-        existente.setRol(usuario.getRol());
+
+        // Solo un administrador puede cambiar el rol (evita auto-ascensos).
+        if (puedeCambiarRol && usuario.getRol() != null && !usuario.getRol().isBlank()) {
+            existente.setRol(usuario.getRol());
+        }
+
         existente.setFechaNacimiento(usuario.getFechaNacimiento());
 
         return usuarioRepo.save(existente);
