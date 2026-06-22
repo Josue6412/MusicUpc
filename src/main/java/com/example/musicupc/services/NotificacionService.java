@@ -50,7 +50,6 @@ public class NotificacionService {
 
         // Asignar fecha de creación si no viene establecida
         if (notificacion.getFecha_creacion() == null) {
-            // Nota: Se recomienda usar LocalDateTime para timestamps
             notificacion.setFecha_creacion(LocalDate.now());
         }
 
