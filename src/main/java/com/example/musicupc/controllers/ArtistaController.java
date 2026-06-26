@@ -20,13 +20,13 @@ public class ArtistaController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
     public List<ArtistaDTOList> listar(){
         return artistaService.listar().stream().map(this::convertToDTO).toList();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
     public ArtistaDTOList listarPorId(@PathVariable Long id){
         return convertToDTO(artistaService.listarPorId(id));
     }
@@ -60,13 +60,13 @@ public class ArtistaController {
     }
 
     @GetMapping("/buscar")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
     public List<ArtistaDTOList> buscar(@RequestParam String nombre) {
         return artistaService.buscarPorNombre(nombre).stream().map(this::convertToDTO).toList();
     }
 
     @GetMapping("/disponibles")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
     public List<ArtistaDTOList> buscarDisponibles() {
         return artistaService.buscarDisponibles().stream().map(this::convertToDTO).toList();
     }

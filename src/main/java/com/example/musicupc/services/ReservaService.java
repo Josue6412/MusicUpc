@@ -22,7 +22,8 @@ public class ReservaService {
     }
 
     public Reserva listarPorId(Long id) {
-        return reservaRepository.findById(id).orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
+        return reservaRepository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "La reserva con id " + id + " no existe."));
     }
 
     public Reserva registrar(Reserva reserva) {
@@ -50,16 +51,8 @@ public class ReservaService {
     }
 
     public List<Reserva> buscarReservasPorUsuario(Long id) {
-
-        List<Reserva> reservas = reservaRepository.buscarReservasPorUsuario(id);
-
-        if (reservas.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "El usuario con id " + id + " no tiene reservas."
-            );
-        }
-
-        return reservas;
+        // Devuelve la lista (vacía si no tiene reservas). Antes lanzaba 404 al
+        // estar vacía, lo que hacía fallar la pantalla "Mis reservas".
+        return reservaRepository.buscarReservasPorUsuario(id);
     }
 }

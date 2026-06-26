@@ -40,9 +40,8 @@ public class NotificacionController {
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public NotificacionDTOList registrar(@RequestBody NotificacionDTOInsert dto) {
         Notificacion notificacion = convertirAEntidad(dto);
-        // Seteamos la fecha de creación actual al registrar
         notificacion.setFecha_creacion(LocalDate.now());
-        notificacion.setLeido(false); // Por defecto no leída
+        notificacion.setLeido(false);
         return convertirADTO(notificacionService.registrar(notificacion));
     }
 

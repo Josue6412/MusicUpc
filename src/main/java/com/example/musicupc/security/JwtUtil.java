@@ -17,7 +17,19 @@ public class JwtUtil {
 
     public String generateToken(String username) {
 
-        return Jwts.builder()
+        return generateToken(username, null, null, null);
+    }
+
+    // Versión enriquecida: incluye el rol y el id del usuario como claims,
+    // para que el frontend pueda leerlos del token (redirección por rol, etc.).
+    public String generateToken(
+            String username,
+            String rol,
+            Long id,
+            String nombre
+    ) {
+
+        JwtBuilder builder = Jwts.builder()
 
                 .setSubject(username)
 
@@ -28,11 +40,13 @@ public class JwtUtil {
                                 System.currentTimeMillis()
                                         + 1000 * 60 * 60
                         )
-                )
+                );
 
-                .signWith(key)
+        if (rol != null) builder.claim("rol", rol);
+        if (id != null) builder.claim("id", id);
+        if (nombre != null) builder.claim("nombre", nombre);
 
-                .compact();
+        return builder.signWith(key).compact();
     }
 
     public String extractUsername(String token) {
