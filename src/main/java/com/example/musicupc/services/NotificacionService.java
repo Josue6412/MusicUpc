@@ -19,6 +19,10 @@ public class NotificacionService {
         return notificacionRepo.findAll();
     }
 
+    public List<Notificacion> listarPorUsuario(Long usuarioId) {
+        return notificacionRepo.findByUsuarioIdOrderByFechaCreacionDesc(usuarioId);
+    }
+
     public Notificacion listarPorId(Long id) {
         return notificacionRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("La notificación con id: " + id + " no existe."));
@@ -49,8 +53,8 @@ public class NotificacionService {
         }
 
         // Asignar fecha de creación si no viene establecida
-        if (notificacion.getFecha_creacion() == null) {
-            notificacion.setFecha_creacion(LocalDate.now());
+        if (notificacion.getFechaCreacion() == null) {
+            notificacion.setFechaCreacion(LocalDate.now());
         }
 
         return notificacionRepo.save(notificacion);
@@ -75,5 +79,11 @@ public class NotificacionService {
     public void eliminar(Long id) {
         Notificacion notificacion = listarPorId(id);
         notificacionRepo.delete(notificacion);
+    }
+
+    public Notificacion marcarComoLeida(Long id) {
+        Notificacion notificacion = listarPorId(id);
+        notificacion.setLeido(true);
+        return notificacionRepo.save(notificacion);
     }
 }

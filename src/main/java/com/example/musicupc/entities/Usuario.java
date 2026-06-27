@@ -33,6 +33,8 @@ public class Usuario {
     private String rol;
     @Column(name = "fechaNacimiento", nullable = false)
     private LocalDate fechaNacimiento;
+    @Column(name = "foto_perfil", length = 500)
+    private String fotoPerfil;
     @CreationTimestamp
     @Column(name = "fechaRegistro", updatable = false)
     private LocalDate fechaRegistro;

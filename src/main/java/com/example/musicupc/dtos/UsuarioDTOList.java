@@ -19,6 +19,7 @@ public class UsuarioDTOList {
     private String rol;
     private LocalDate fechaNacimiento;
     private LocalDate fechaRegistro;
+    private String fotoPerfil;
 
 
 }

@@ -18,4 +18,5 @@ public class UsuarioDTOInsert {
     private String dni;
     private String rol;
     private LocalDate fechaNacimiento;
+    private String fotoPerfil;
 }

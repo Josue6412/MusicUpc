@@ -30,6 +30,15 @@ public class NotificacionController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/usuario/{usuarioId}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
+    public List<NotificacionDTOList> listarPorUsuario(@PathVariable Long usuarioId) {
+        return notificacionService.listarPorUsuario(usuarioId)
+                .stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public NotificacionDTOList listarPorId(@PathVariable Long id) {
@@ -40,7 +49,7 @@ public class NotificacionController {
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public NotificacionDTOList registrar(@RequestBody NotificacionDTOInsert dto) {
         Notificacion notificacion = convertirAEntidad(dto);
-        notificacion.setFecha_creacion(LocalDate.now());
+        notificacion.setFechaCreacion(LocalDate.now());
         notificacion.setLeido(false);
         return convertirADTO(notificacionService.registrar(notificacion));
     }
@@ -50,6 +59,12 @@ public class NotificacionController {
     public NotificacionDTOList actualizar(@PathVariable Long id, @RequestBody NotificacionDTOInsert dto) {
         Notificacion notificacion = convertirAEntidad(dto);
         return convertirADTO(notificacionService.actualizar(id, notificacion));
+    }
+
+    @PatchMapping("/{id}/leer")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
+    public NotificacionDTOList marcarComoLeida(@PathVariable Long id) {
+        return convertirADTO(notificacionService.marcarComoLeida(id));
     }
 
     @DeleteMapping("/{id}")
@@ -68,7 +83,7 @@ public class NotificacionController {
                 n.getMensaje(),
                 n.getTipo(),
                 n.isLeido(),
-                n.getFecha_creacion()
+                n.getFechaCreacion()
 
         );
     }
