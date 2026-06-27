@@ -18,5 +18,5 @@ public class NotificacionDTOList {
     private String mensaje;
     private String tipo;
     private boolean leido;
-    private LocalDate fecha_creacion;
+    private LocalDate fechaCreacion;
 }

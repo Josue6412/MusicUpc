@@ -1,7 +1,9 @@
 package com.example.musicupc.services;
 
 import com.example.musicupc.entities.Pago;
+import com.example.musicupc.entities.Reserva;
 import com.example.musicupc.repositories.PagoRepository;
+import com.example.musicupc.repositories.ReservaRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -11,9 +13,11 @@ import java.util.List;
 public class PagoService {
 
     private final PagoRepository pagoRepository;
+    private final ReservaRepository reservaRepository;
 
-    public PagoService(PagoRepository pagoRepository) {
+    public PagoService(PagoRepository pagoRepository,  ReservaRepository reservaRepository) {
         this.pagoRepository = pagoRepository;
+        this.reservaRepository = reservaRepository;
     }
 
     public List<Pago> listar() {
@@ -25,10 +29,38 @@ public class PagoService {
     }
 
     public Pago registrar(Pago pago) {
-        if (pago.getEstado() != null && pago.getEstado().equalsIgnoreCase("succeeded")) {
-            pago.setFechaPago(LocalDateTime.now());
+        validarMetodoPago(pago.getMetodo());
+
+        pago.setEstado("COMPLETADO");
+        pago.setFechaPago(LocalDateTime.now());
+
+        if (pago.getReserva() == null || pago.getReserva().getId() == null) {
+            throw new RuntimeException("La reserva es obligatoria para registrar el pago");
         }
+
+        Reserva reserva = reservaRepository.findById(pago.getReserva().getId())
+                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
+
+        reserva.setEstado("PAGADO");
+        reservaRepository.save(reserva);
+
+        pago.setReserva(reserva);
+
         return pagoRepository.save(pago);
+    }
+
+    private void validarMetodoPago(String metodo) {
+        if (metodo == null || metodo.isBlank()) {
+            throw new RuntimeException("El método de pago es obligatorio");
+        }
+
+        String metodoNormalizado = metodo.trim().toUpperCase();
+
+        if (!metodoNormalizado.equals("TARJETA")
+                && !metodoNormalizado.equals("YAPE")
+                && !metodoNormalizado.equals("PLIN")) {
+            throw new RuntimeException("Método de pago inválido. Solo se permite TARJETA, YAPE o PLIN");
+        }
     }
 
     public Pago actualizar(Long id, Pago pagoDetalles) {

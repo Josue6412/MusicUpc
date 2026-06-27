@@ -18,7 +18,7 @@ public class NotificacionDTOInsert {
     private String mensaje;
     private String tipo;
     private Boolean leido;
-    private LocalDate fecha_creacion;
+    private LocalDate fechaCreacion;
 
 
 }

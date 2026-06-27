@@ -81,7 +81,8 @@ public class UsuarioController {
                 usuario.getDni(),
                 usuario.getRol(),
                 usuario.getFechaNacimiento(),
-                usuario.getFechaRegistro()
+                usuario.getFechaRegistro(),
+                usuario.getFotoPerfil()
         );
     }
 
@@ -95,6 +96,7 @@ public class UsuarioController {
         usuario.setDni(dto.getDni());
         usuario.setRol(dto.getRol());
         usuario.setFechaNacimiento(dto.getFechaNacimiento());
+        usuario.setFotoPerfil(dto.getFotoPerfil());
         return usuario;
     }
 }

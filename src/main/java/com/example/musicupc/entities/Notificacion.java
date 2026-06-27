@@ -27,7 +27,7 @@ public class Notificacion {
     @Column(name = "leido", nullable = false)
     private boolean leido;
     @Column(name = "fecha_creacion", nullable = false)
-    private LocalDate fecha_creacion;
+    private LocalDate fechaCreacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")

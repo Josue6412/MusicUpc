@@ -24,7 +24,7 @@ public class ReseñaController {
 
     // Lista las reseñas de un usuario, ordenadas por fecha de creación desc
     @GetMapping("/usuario/{usuarioId}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
     public List<ReseñaDTOList> listarPorUsuario(@PathVariable Long usuarioId) {
         return reseñaService.listarPorUsuario(usuarioId)
                 .stream()
@@ -52,7 +52,7 @@ public class ReseñaController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
     public ReseñaDTOList registrar(@RequestBody ReseñaDTOInsert dto) {
         Reseña reseña = convertirAEntidad(dto);
         return convertirADTO(reseñaService.registrar(reseña));
