@@ -16,7 +16,9 @@ public class SuscripcionService {
     }
 
     public List<Suscripcion> listar() {
-        return suscripcionRepo.findAll();
+        List<Suscripcion> rows = suscripcionRepo.findAll();
+        rows.forEach(this::actualizarEstadoSiVencida);
+        return rows;
     }
 
     public Suscripcion listarPorId(Long id) {
@@ -24,8 +26,13 @@ public class SuscripcionService {
                 .orElseThrow(() -> new RuntimeException("La suscripción con id: " + id + " no existe."));
     }
 
+    public List<Suscripcion> listarPorUsuario(Long usuarioId) {
+        List<Suscripcion> rows = suscripcionRepo.findByUsuarioIdOrderByFechaCreacionDesc(usuarioId);
+        rows.forEach(this::actualizarEstadoSiVencida);
+        return rows;
+    }
+
     public Suscripcion registrar(Suscripcion suscripcion) {
-        // Validación de campos obligatorios
         if (suscripcion.getTipo_plan() == null || suscripcion.getTipo_plan().isBlank()) {
             throw new IllegalArgumentException("El tipo de plan es obligatorio.");
         }
@@ -35,10 +42,17 @@ public class SuscripcionService {
         }
 
         if (suscripcion.getFecha_inicio() == null) {
+            suscripcion.setFecha_inicio(LocalDate.now());
+        }
+
+        if (suscripcion.getFecha_inicio() == null) {
             throw new IllegalArgumentException("La fecha de inicio es obligatoria.");
         }
 
-        // Validación lógica de fechas
+        if (suscripcion.getFecha_fin() == null) {
+            suscripcion.setFecha_fin(suscripcion.getFecha_inicio().plusMonths(1));
+        }
+
         if (suscripcion.getFecha_fin() != null && suscripcion.getFecha_fin().isBefore(suscripcion.getFecha_inicio())) {
             throw new IllegalArgumentException("La fecha de fin no puede ser anterior a la fecha de inicio.");
         }
@@ -47,7 +61,6 @@ public class SuscripcionService {
             throw new IllegalArgumentException("El estado de la suscripción es obligatorio.");
         }
 
-        // Asignar fecha de creación si no viene establecida
         if (suscripcion.getFecha_creacion() == null) {
             suscripcion.setFecha_creacion(LocalDate.now());
         }
@@ -72,5 +85,14 @@ public class SuscripcionService {
     public void eliminar(Long id) {
         Suscripcion suscripcion = listarPorId(id);
         suscripcionRepo.delete(suscripcion);
+    }
+
+    private void actualizarEstadoSiVencida(Suscripcion s) {
+        if (s.getFecha_fin() != null
+                && s.getFecha_fin().isBefore(LocalDate.now())
+                && "PAGADA".equalsIgnoreCase(s.getEstado())) {
+            s.setEstado("PENDIENTE");
+            suscripcionRepo.save(s);
+        }
     }
 }

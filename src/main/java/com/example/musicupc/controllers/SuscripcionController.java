@@ -36,15 +36,27 @@ public class SuscripcionController {
         return convertirADTO(suscripcionService.listarPorId(id));
     }
 
+    @GetMapping("/usuario/{usuarioId}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
+    public List<SuscripcionDTOList> listarPorUsuario(@PathVariable Long usuarioId) {
+        return suscripcionService.listarPorUsuario(usuarioId)
+                .stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+    }
+
     @PostMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
     public SuscripcionDTOList registrar(@RequestBody SuscripcionDTOInsert dto) {
         Suscripcion suscripcion = convertirAEntidad(dto);
 
-        // Seteamos valores automáticos para el registro inicial
         suscripcion.setFecha_inicio(LocalDate.now());
-        suscripcion.setEstado("ACTIVO");
         suscripcion.setFecha_creacion(LocalDate.now());
+        suscripcion.setEstado("ACTIVO");
+
+        if (suscripcion.getFecha_fin() == null) {
+            suscripcion.setFecha_fin(LocalDate.now().plusMonths(1));
+        }
 
         return convertirADTO(suscripcionService.registrar(suscripcion));
     }
