@@ -112,6 +112,7 @@ public class UsuarioService {
         }
 
         existente.setFechaNacimiento(usuario.getFechaNacimiento());
+        existente.setFotoPerfil(usuario.getFotoPerfil());
 
         return usuarioRepo.save(existente);
     }
