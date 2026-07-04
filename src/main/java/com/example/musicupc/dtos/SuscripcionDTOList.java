@@ -15,6 +15,7 @@ public class SuscripcionDTOList {
 
     private Long id;
     private Long usuario_id;
+    private String usuarioNombre;
     private String tipo_plan;
     private double precio;
     private LocalDate fecha_inicio;

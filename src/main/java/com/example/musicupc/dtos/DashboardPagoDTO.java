@@ -10,16 +10,12 @@ import java.time.LocalDateTime;
 
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
-public class PagoDTOList {
+public class DashboardPagoDTO {
     private Long id;
-    private Long reservaId;
-    private String reservaDetalle;
-    private Long clienteId;
-    private String clienteNombre;
-    private BigDecimal monto;
+    private String concepto;
+    private String tipo;
     private String metodo;
     private String estado;
-    private String referenciaTransaccion;
+    private BigDecimal monto;
     private LocalDateTime fechaPago;
-    private LocalDateTime fechaCreacion;
 }

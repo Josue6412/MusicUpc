@@ -10,10 +10,8 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "terminos")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 public class Terminos {
 
     @Id
@@ -24,7 +22,7 @@ public class Terminos {
     @JoinColumn(name = "reserva_id", nullable = false)
     private Reserva reservaId;
 
-    @Column(name = "terminos", precision = 10, scale = 2, nullable = false)
+    @Column(name = "terminos", columnDefinition = "TEXT", nullable = false)
     private String terminos;
 
     @Column(name = "status", length = 50)

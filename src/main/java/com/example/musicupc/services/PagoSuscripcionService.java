@@ -5,7 +5,9 @@ import com.example.musicupc.entities.Suscripcion;
 import com.example.musicupc.repositories.PagoSuscripcionRepository;
 import com.example.musicupc.repositories.SuscripcionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,7 +18,10 @@ public class PagoSuscripcionService {
     private final PagoSuscripcionRepository pagoSuscripcionRepository;
     private final SuscripcionRepository suscripcionRepository;
 
-    public PagoSuscripcionService(PagoSuscripcionRepository pagoSuscripcionRepository, SuscripcionRepository suscripcionRepository) {
+    public PagoSuscripcionService(
+            PagoSuscripcionRepository pagoSuscripcionRepository,
+            SuscripcionRepository suscripcionRepository
+    ) {
         this.pagoSuscripcionRepository = pagoSuscripcionRepository;
         this.suscripcionRepository = suscripcionRepository;
     }
@@ -34,25 +39,34 @@ public class PagoSuscripcionService {
                 .orElseThrow(() -> new RuntimeException("Pago de suscripción no encontrado"));
     }
 
+    @Transactional
     public PagoSuscripcion registrar(PagoSuscripcion pago) {
-        validarMetodoPago(pago.getMetodo());
+        validarDatosBasicos(pago);
 
-        if (pago.getSuscripcion() == null || pago.getSuscripcion().getId() == null) {
-            throw new RuntimeException("La suscripción es obligatoria para registrar el pago");
-        }
+        String metodo = normalizarMetodoPago(pago.getMetodo());
+        Suscripcion suscripcion = obtenerSuscripcion(pago);
 
-        Suscripcion suscripcion = suscripcionRepository.findById(pago.getSuscripcion().getId())
-                .orElseThrow(() -> new RuntimeException("Suscripción no encontrada"));
+        validarSuscripcionNoCancelada(suscripcion);
 
-        if (pago.getTipoPlan() == null || pago.getTipoPlan().isBlank()) {
-            pago.setTipoPlan(suscripcion.getTipo_plan());
-        }
+        String planSolicitado = normalizarPlan(
+                pago.getTipoPlan() != null && !pago.getTipoPlan().isBlank()
+                        ? pago.getTipoPlan()
+                        : suscripcion.getTipo_plan()
+        );
+
+        BigDecimal precioPlan = obtenerPrecioPorPlan(planSolicitado);
+
+        validarMontoMinimo(pago, precioPlan);
 
         pago.setSuscripcion(suscripcion);
+        pago.setMetodo(metodo);
+        pago.setTipoPlan(planSolicitado);
         pago.setEstado("COMPLETADO");
         pago.setFechaPago(LocalDateTime.now());
         pago.setFechaCreacion(LocalDateTime.now());
 
+        suscripcion.setTipo_plan(planSolicitado);
+        suscripcion.setPrecio(precioPlan.doubleValue());
         suscripcion.setEstado("PAGADA");
         suscripcion.setFecha_inicio(LocalDate.now());
         suscripcion.setFecha_fin(LocalDate.now().plusMonths(1));
@@ -62,7 +76,79 @@ public class PagoSuscripcionService {
         return pagoSuscripcionRepository.save(pago);
     }
 
-    private void validarMetodoPago(String metodo) {
+    @Transactional
+    public PagoSuscripcion actualizar(Long id, PagoSuscripcion pagoActualizado) {
+        PagoSuscripcion pagoExistente = listarPorId(id);
+
+        validarDatosBasicos(pagoActualizado);
+
+        String metodo = normalizarMetodoPago(pagoActualizado.getMetodo());
+        Suscripcion suscripcion = obtenerSuscripcion(pagoActualizado);
+
+        if (pagoExistente.getSuscripcion() != null
+                && pagoExistente.getSuscripcion().getId() != null
+                && !pagoExistente.getSuscripcion().getId().equals(suscripcion.getId())) {
+            throw new RuntimeException("No se puede cambiar la suscripción de un pago existente");
+        }
+
+        String planSolicitado = normalizarPlan(
+                pagoActualizado.getTipoPlan() != null && !pagoActualizado.getTipoPlan().isBlank()
+                        ? pagoActualizado.getTipoPlan()
+                        : suscripcion.getTipo_plan()
+        );
+
+        BigDecimal precioPlan = obtenerPrecioPorPlan(planSolicitado);
+
+        validarMontoMinimo(pagoActualizado, precioPlan);
+
+        pagoExistente.setSuscripcion(suscripcion);
+        pagoExistente.setMonto(pagoActualizado.getMonto());
+        pagoExistente.setTipoPlan(planSolicitado);
+        pagoExistente.setMetodo(metodo);
+        pagoExistente.setReferenciaTransaccion(pagoActualizado.getReferenciaTransaccion());
+
+        return pagoSuscripcionRepository.save(pagoExistente);
+    }
+
+    public void eliminar(Long id) {
+        PagoSuscripcion pago = listarPorId(id);
+        pagoSuscripcionRepository.delete(pago);
+    }
+
+    private void validarDatosBasicos(PagoSuscripcion pago) {
+        if (pago.getSuscripcion() == null || pago.getSuscripcion().getId() == null) {
+            throw new RuntimeException("La suscripción es obligatoria para registrar el pago");
+        }
+
+        if (pago.getMonto() == null) {
+            throw new RuntimeException("El monto es obligatorio");
+        }
+    }
+
+    private Suscripcion obtenerSuscripcion(PagoSuscripcion pago) {
+        return suscripcionRepository.findById(pago.getSuscripcion().getId())
+                .orElseThrow(() -> new RuntimeException("Suscripción no encontrada"));
+    }
+
+    private void validarSuscripcionNoCancelada(Suscripcion suscripcion) {
+        if (suscripcion.getEstado() == null || suscripcion.getEstado().isBlank()) {
+            return;
+        }
+
+        String estado = suscripcion.getEstado().trim().toUpperCase();
+
+        if (estado.equals("CANCELADA") || estado.equals("CANCELADO")) {
+            throw new RuntimeException("No se puede pagar una suscripción cancelada");
+        }
+    }
+
+    private void validarMontoMinimo(PagoSuscripcion pago, BigDecimal precioPlan) {
+        if (pago.getMonto().compareTo(precioPlan) < 0) {
+            throw new RuntimeException("El monto no puede ser menor al precio de la suscripción");
+        }
+    }
+
+    private String normalizarMetodoPago(String metodo) {
         if (metodo == null || metodo.isBlank()) {
             throw new RuntimeException("El método de pago es obligatorio");
         }
@@ -74,9 +160,36 @@ public class PagoSuscripcionService {
                 && !metodoNormalizado.equals("PLIN")) {
             throw new RuntimeException("Método de pago inválido. Solo se permite TARJETA, YAPE o PLIN");
         }
+
+        return metodoNormalizado;
     }
 
-    public void eliminar(Long id) {
-        pagoSuscripcionRepository.deleteById(id);
+    private String normalizarPlan(String plan) {
+        if (plan == null || plan.isBlank()) {
+            throw new RuntimeException("El plan es obligatorio");
+        }
+
+        String normalizado = plan.trim().toUpperCase();
+
+        if (normalizado.equals("BÁSICO")) {
+            return "BASICO";
+        }
+
+        if (!normalizado.equals("BASICO")
+                && !normalizado.equals("PREMIUM")
+                && !normalizado.equals("PRO")) {
+            throw new RuntimeException("Plan inválido. Solo se permite BASICO, PREMIUM o PRO");
+        }
+
+        return normalizado;
+    }
+
+    private BigDecimal obtenerPrecioPorPlan(String plan) {
+        return switch (normalizarPlan(plan)) {
+            case "BASICO" -> BigDecimal.valueOf(19.90);
+            case "PREMIUM" -> BigDecimal.valueOf(29.90);
+            case "PRO" -> BigDecimal.valueOf(49.90);
+            default -> throw new RuntimeException("Plan inválido");
+        };
     }
 }

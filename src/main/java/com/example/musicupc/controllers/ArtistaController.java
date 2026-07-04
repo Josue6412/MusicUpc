@@ -76,10 +76,26 @@ public class ArtistaController {
                 artista.getId(),
                 artista.getNombreArtistico(),
                 artista.getBio(),
-                artista.getGeneros() != null ? artista.getGeneros().stream().map(g -> g.getNombre()).toList() : List.of(),
-                artista.getRegion() != null  ? artista.getRegion().getNombre() : null,
+
+                artista.getGeneros() != null
+                        ? artista.getGeneros().stream().map(g -> g.getId()).toList()
+                        : List.of(),
+
+                artista.getGeneros() != null
+                        ? artista.getGeneros().stream().map(g -> g.getNombre()).toList()
+                        : List.of(),
+
+                artista.getRegion() != null
+                        ? artista.getRegion().getId()
+                        : null,
+
+                artista.getRegion() != null
+                        ? artista.getRegion().getNombre()
+                        : null,
+
                 artista.isDisponibilidad(),
                 artista.getPrecioBase(),
+                artista.getFechaInicioCarrera(),
                 artista.getAniosExperiencia()
         );
     }

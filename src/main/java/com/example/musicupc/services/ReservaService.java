@@ -4,6 +4,7 @@ import com.example.musicupc.entities.Reserva;
 import com.example.musicupc.repositories.ReservaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -12,9 +13,11 @@ import java.util.List;
 public class ReservaService {
 
     private final ReservaRepository reservaRepository;
+    private final TerminoService terminoService;
 
-    public ReservaService(ReservaRepository reservaRepository) {
+    public ReservaService(ReservaRepository reservaRepository, TerminoService terminoService) {
         this.reservaRepository = reservaRepository;
+        this.terminoService = terminoService;
     }
 
     public List<Reserva> listar() {
@@ -26,9 +29,15 @@ public class ReservaService {
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "La reserva con id " + id + " no existe."));
     }
 
+    @Transactional
     public Reserva registrar(Reserva reserva) {
         reserva.setEstado("PENDING");
-        return reservaRepository.save(reserva);
+
+        Reserva reservaGuardada = reservaRepository.save(reserva);
+
+        terminoService.crearAutomaticoParaReserva(reservaGuardada);
+
+        return reservaGuardada;
     }
 
     public Reserva actualizar(Long id, Reserva reservaDetalles) {
@@ -51,8 +60,6 @@ public class ReservaService {
     }
 
     public List<Reserva> buscarReservasPorUsuario(Long id) {
-        // Devuelve la lista (vacía si no tiene reservas). Antes lanzaba 404 al
-        // estar vacía, lo que hacía fallar la pantalla "Mis reservas".
         return reservaRepository.buscarReservasPorUsuario(id);
     }
 }

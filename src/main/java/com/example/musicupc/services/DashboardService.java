@@ -9,6 +9,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.example.musicupc.dtos.DashboardPagoDTO;
+import java.util.Comparator;
+import java.util.stream.Stream;
 
 @Service
 public class DashboardService {
@@ -20,14 +23,8 @@ public class DashboardService {
     private final PagoSuscripcionRepository pagoSuscripcionRepository;
     private final SuscripcionRepository suscripcionRepository;
 
-    public DashboardService(
-            UsuarioRepository usuarioRepository,
-            ArtistaRepository artistaRepository,
-            ReservaRepository reservaRepository,
-            PagoRepository pagoRepository,
-            PagoSuscripcionRepository pagoSuscripcionRepository,
-            SuscripcionRepository suscripcionRepository
-    ) {
+    public DashboardService(UsuarioRepository usuarioRepository, ArtistaRepository artistaRepository, ReservaRepository reservaRepository, PagoRepository pagoRepository, PagoSuscripcionRepository pagoSuscripcionRepository,
+            SuscripcionRepository suscripcionRepository) {
         this.usuarioRepository = usuarioRepository;
         this.artistaRepository = artistaRepository;
         this.reservaRepository = reservaRepository;
@@ -59,6 +56,46 @@ public class DashboardService {
                 ))
                 .toList();
 
+        List<DashboardPagoDTO> pagosReservas = pagoRepository
+                .findTop5ByFechaCreacionBetweenOrderByFechaCreacionDesc(inicio, fin)
+                .stream()
+                .map(p -> new DashboardPagoDTO(
+                        p.getId(),
+                        "Reserva #" + p.getReserva().getId(),
+                        "RESERVA",
+                        p.getMetodo(),
+                        p.getEstado(),
+                        p.getMonto(),
+                        p.getFechaPago() != null ? p.getFechaPago() : p.getFechaCreacion()
+                ))
+                .toList();
+
+        List<DashboardPagoDTO> pagosSuscripciones = pagoSuscripcionRepository
+                .findTop5ByFechaCreacionBetweenOrderByFechaCreacionDesc(inicio, fin)
+                .stream()
+                .map(p -> new DashboardPagoDTO(
+                        p.getId(),
+                        "Suscripción " + p.getTipoPlan(),
+                        "SUSCRIPCION",
+                        p.getMetodo(),
+                        p.getEstado(),
+                        p.getMonto(),
+                        p.getFechaPago() != null ? p.getFechaPago() : p.getFechaCreacion()
+                ))
+                .toList();
+
+        List<DashboardPagoDTO> ultimosPagos = Stream
+                .concat(pagosReservas.stream(), pagosSuscripciones.stream())
+                .sorted(
+                        Comparator.comparing(
+                                (DashboardPagoDTO p) -> p.getFechaPago() != null
+                                        ? p.getFechaPago()
+                                        : LocalDateTime.MIN
+                        ).reversed()
+                )
+                .limit(5)
+                .toList();
+
         return new DashboardDTO(
                 usuarioRepository.count(),
                 artistaRepository.count(),
@@ -77,7 +114,8 @@ public class DashboardService {
                 ingresosSuscripciones,
                 ingresosReservas.add(ingresosSuscripciones),
 
-                ultimasReservas
+                ultimasReservas,
+                ultimosPagos
         );
     }
 

@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface PagoRepository extends JpaRepository<Pago, Long> {
 
@@ -14,8 +15,19 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
     BigDecimal sumarIngresosReservas();
 
     @Query("SELECT COALESCE(SUM(p.monto), 0) FROM Pago p WHERE p.fechaCreacion BETWEEN :inicio AND :fin")
-    BigDecimal sumarIngresosReservasPorPeriodo(@Param("inicio") LocalDateTime inicio,
-                                               @Param("fin") LocalDateTime fin);
+    BigDecimal sumarIngresosReservasPorPeriodo(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
+    );
 
     long countByFechaCreacionBetween(LocalDateTime inicio, LocalDateTime fin);
+
+    List<Pago> findTop5ByFechaCreacionBetweenOrderByFechaCreacionDesc(
+            LocalDateTime inicio,
+            LocalDateTime fin
+    );
+
+    boolean existsByReserva_Id(Long reservaId);
+
+    boolean existsByReserva_IdAndIdNot(Long reservaId, Long pagoId);
 }
