@@ -52,7 +52,9 @@ public class SuscripcionController {
 
         suscripcion.setFecha_inicio(LocalDate.now());
         suscripcion.setFecha_creacion(LocalDate.now());
-        suscripcion.setEstado("ACTIVO");
+        if (suscripcion.getEstado() == null || suscripcion.getEstado().isBlank()) {
+            suscripcion.setEstado("PENDIENTE");
+        }
 
         if (suscripcion.getFecha_fin() == null) {
             suscripcion.setFecha_fin(LocalDate.now().plusMonths(1));
@@ -74,14 +76,21 @@ public class SuscripcionController {
         suscripcionService.eliminar(id);
     }
 
-    // --- Métodos de conversión (Mappers) ---
-
     private SuscripcionDTOList convertirADTO(Suscripcion s) {
         SuscripcionDTOList dto = new SuscripcionDTOList();
 
         dto.setId(s.getId());
-        // Asumiendo que tu entidad Suscripcion tiene una relación con Usuario
-        dto.setUsuario_id(s.getUsuario() != null ? s.getUsuario().getId() : null);
+
+        if (s.getUsuario() != null) {
+            dto.setUsuario_id(s.getUsuario().getId());
+            dto.setUsuarioNombre(
+                    s.getUsuario().getNombre() + " " + s.getUsuario().getApellido()
+            );
+        } else {
+            dto.setUsuario_id(null);
+            dto.setUsuarioNombre("Sin usuario");
+        }
+
         dto.setTipo_plan(s.getTipo_plan());
         dto.setPrecio(s.getPrecio());
         dto.setFecha_inicio(s.getFecha_inicio());
@@ -99,7 +108,6 @@ public class SuscripcionController {
         suscripcion.setPrecio(dto.getPrecio());
         suscripcion.setFecha_fin(dto.getFecha_fin());
 
-        // Si el DTO de actualización envía el estado, lo mapeamos
         if (dto.getEstado() != null) {
             suscripcion.setEstado(dto.getEstado());
         }

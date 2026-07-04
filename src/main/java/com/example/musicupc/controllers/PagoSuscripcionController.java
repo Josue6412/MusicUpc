@@ -45,6 +45,16 @@ public class PagoSuscripcionController {
         return convertirADTO(pagoSuscripcionService.registrar(pago));
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public PagoSuscripcionDTOList actualizar(
+            @PathVariable Long id,
+            @RequestBody PagoSuscripcionDTOInsert dto
+    ) {
+        PagoSuscripcion pago = convertirAEntidad(dto);
+        return convertirADTO(pagoSuscripcionService.actualizar(id, pago));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public void eliminar(@PathVariable Long id) {
@@ -52,12 +62,32 @@ public class PagoSuscripcionController {
     }
 
     private PagoSuscripcionDTOList convertirADTO(PagoSuscripcion pago) {
+        Suscripcion suscripcion = pago.getSuscripcion();
+
+        Long suscripcionId = suscripcion != null ? suscripcion.getId() : null;
+
+        Long usuarioId = suscripcion != null && suscripcion.getUsuario() != null
+                ? suscripcion.getUsuario().getId()
+                : null;
+
+        String usuarioNombre = suscripcion != null && suscripcion.getUsuario() != null
+                ? suscripcion.getUsuario().getNombre() + " " + suscripcion.getUsuario().getApellido()
+                : "Sin usuario";
+
+        String plan = pago.getTipoPlan() != null
+                ? pago.getTipoPlan()
+                : suscripcion != null ? suscripcion.getTipo_plan() : "";
+
+        String suscripcionDetalle = suscripcionId != null
+                ? plan + " #" + suscripcionId
+                : "-";
+
         return new PagoSuscripcionDTOList(
                 pago.getId(),
-                pago.getSuscripcion().getId(),
-                pago.getSuscripcion().getUsuario() != null
-                        ? pago.getSuscripcion().getUsuario().getId()
-                        : null,
+                suscripcionId,
+                usuarioId,
+                usuarioNombre,
+                suscripcionDetalle,
                 pago.getMonto(),
                 pago.getTipoPlan(),
                 pago.getMetodo(),

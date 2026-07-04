@@ -25,4 +25,5 @@ public class DashboardDTO {
     private BigDecimal ingresosSuscripciones;
     private BigDecimal ingresosTotales;
     private List<DashboardReservaDTO> ultimasReservas;
+    private List<DashboardPagoDTO> ultimosPagos;
 }

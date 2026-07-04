@@ -15,6 +15,7 @@ import java.time.LocalTime;
 public class ReservaDTOList {
     private Long id;
     private Long clienteId;
+    private String clienteNombre;
     private LocalDate fechaEvento;
     private LocalTime horaEvento;
     private String ubicacionEvento;

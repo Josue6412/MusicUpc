@@ -86,9 +86,18 @@ public class ReservaController {
     }
 
     private ReservaDTOList convertirADTO(Reserva reserva) {
+        Long clienteId = reserva.getCliente() != null
+                ? reserva.getCliente().getId()
+                : null;
+
+        String clienteNombre = reserva.getCliente() != null
+                ? reserva.getCliente().getNombre() + " " + reserva.getCliente().getApellido()
+                : "Sin cliente";
+
         return new ReservaDTOList(
                 reserva.getId(),
-                reserva.getCliente().getId(),
+                clienteId,
+                clienteNombre,
                 reserva.getFechaEvento(),
                 reserva.getHoraEvento(),
                 reserva.getUbicacionEvento(),

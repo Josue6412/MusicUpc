@@ -72,16 +72,26 @@ public class ReseñaController {
     }
 
     private ReseñaDTOList convertirADTO(Reseña reseña) {
-        String nombreCompleto = null;
+        String nombreCompleto = "Sin usuario";
+
         if (reseña.getUsuario() != null) {
             nombreCompleto = reseña.getUsuario().getNombre() + " " + reseña.getUsuario().getApellido();
         }
+
+        Long reservaId = reseña.getReserva() != null
+                ? reseña.getReserva().getId()
+                : null;
+
+        String reservaDetalle = reservaId != null
+                ? "Reserva #" + reservaId
+                : "-";
 
         return new ReseñaDTOList(
                 reseña.getId(),
                 reseña.getUsuario() != null ? reseña.getUsuario().getId() : null,
                 nombreCompleto,
-                reseña.getReserva() != null ? reseña.getReserva().getId() : null,
+                reservaId,
+                reservaDetalle,
                 reseña.getRating(),
                 reseña.getComentario(),
                 reseña.getFechaCreacion()

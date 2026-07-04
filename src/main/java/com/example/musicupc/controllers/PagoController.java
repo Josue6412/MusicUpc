@@ -54,9 +54,30 @@ public class PagoController {
     }
 
     private PagoDTOList convertirADTO(Pago pago) {
+        Reserva reserva = pago.getReserva();
+
+        Long reservaId = reserva != null
+                ? reserva.getId()
+                : null;
+
+        String reservaDetalle = reservaId != null
+                ? "Reserva #" + reservaId
+                : "-";
+
+        Long clienteId = reserva != null && reserva.getCliente() != null
+                ? reserva.getCliente().getId()
+                : null;
+
+        String clienteNombre = reserva != null && reserva.getCliente() != null
+                ? reserva.getCliente().getNombre() + " " + reserva.getCliente().getApellido()
+                : "Sin cliente";
+
         return new PagoDTOList(
                 pago.getId(),
-                pago.getReserva().getId(),
+                reservaId,
+                reservaDetalle,
+                clienteId,
+                clienteNombre,
                 pago.getMonto(),
                 pago.getMetodo(),
                 pago.getEstado(),

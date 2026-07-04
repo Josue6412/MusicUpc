@@ -10,14 +10,26 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PagoSuscripcionRepository extends JpaRepository<PagoSuscripcion, Long> {
+
     List<PagoSuscripcion> findBySuscripcionUsuarioIdOrderByFechaCreacionDesc(Long usuarioId);
 
     @Query("SELECT COALESCE(SUM(p.monto), 0) FROM PagoSuscripcion p")
     BigDecimal sumarIngresosSuscripciones();
 
     @Query("SELECT COALESCE(SUM(p.monto), 0) FROM PagoSuscripcion p WHERE p.fechaCreacion BETWEEN :inicio AND :fin")
-    BigDecimal sumarIngresosSuscripcionesPorPeriodo(@Param("inicio") LocalDateTime inicio,
-                                                    @Param("fin") LocalDateTime fin);
+    BigDecimal sumarIngresosSuscripcionesPorPeriodo(
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fin") LocalDateTime fin
+    );
 
     long countByFechaCreacionBetween(LocalDateTime inicio, LocalDateTime fin);
+
+    List<PagoSuscripcion> findTop5ByFechaCreacionBetweenOrderByFechaCreacionDesc(
+            LocalDateTime inicio,
+            LocalDateTime fin
+    );
+
+    boolean existsBySuscripcion_Id(Long suscripcionId);
+
+    boolean existsBySuscripcion_IdAndIdNot(Long suscripcionId, Long pagoId);
 }
