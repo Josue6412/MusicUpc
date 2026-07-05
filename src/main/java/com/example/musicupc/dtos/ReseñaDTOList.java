@@ -15,6 +15,7 @@ public class ReseñaDTOList {
     private String nombreUsuario;
     private Long reservaId;
     private String reservaDetalle;
+    private String artistaNombre;
     private Integer rating;
     private String comentario;
     private LocalDateTime fechaCreacion;

@@ -13,6 +13,7 @@ import java.time.LocalTime;
 @NoArgsConstructor @AllArgsConstructor
 public class ReservaDTOInsert {
     private Long clienteId;
+    private Long artistaId;
     private LocalDate fechaEvento;
     private LocalTime horaEvento;
     private String ubicacionEvento;

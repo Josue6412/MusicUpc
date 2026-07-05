@@ -8,6 +8,7 @@ import com.example.musicupc.entities.Usuario;
 import com.example.musicupc.services.ReseñaService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,17 +23,15 @@ public class ReseñaController {
         this.reseñaService = reseñaService;
     }
 
-    // Lista las reseñas de un usuario, ordenadas por fecha de creación desc
     @GetMapping("/usuario/{usuarioId}")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
-    public List<ReseñaDTOList> listarPorUsuario(@PathVariable Long usuarioId) {
-        return reseñaService.listarPorUsuario(usuarioId)
+    public List<ReseñaDTOList> listarPorUsuario(@PathVariable Long usuarioId, Authentication authentication) {
+        return reseñaService.listarPorUsuario(usuarioId, authentication)
                 .stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
     }
 
-    // Devuelve el promedio de rating de una reserva (0.0 si no hay reseñas)
     @GetMapping("/reserva/{reservaId}/promedio")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public Double obtenerPromedioRatingPorReserva(@PathVariable Long reservaId) {
@@ -53,9 +52,9 @@ public class ReseñaController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
-    public ReseñaDTOList registrar(@RequestBody ReseñaDTOInsert dto) {
+    public ReseñaDTOList registrar(@RequestBody ReseñaDTOInsert dto, Authentication authentication) {
         Reseña reseña = convertirAEntidad(dto);
-        return convertirADTO(reseñaService.registrar(reseña));
+        return convertirADTO(reseñaService.registrar(reseña, authentication));
     }
 
     @PutMapping("/{id}")
@@ -86,12 +85,18 @@ public class ReseñaController {
                 ? "Reserva #" + reservaId
                 : "-";
 
+        String artistaNombre = reseña.getReserva() != null
+                && reseña.getReserva().getArtista() != null
+                ? reseña.getReserva().getArtista().getNombreArtistico()
+                : "Sin artista";
+
         return new ReseñaDTOList(
                 reseña.getId(),
                 reseña.getUsuario() != null ? reseña.getUsuario().getId() : null,
                 nombreCompleto,
                 reservaId,
                 reservaDetalle,
+                artistaNombre,
                 reseña.getRating(),
                 reseña.getComentario(),
                 reseña.getFechaCreacion()

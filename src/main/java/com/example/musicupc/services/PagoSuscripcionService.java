@@ -2,8 +2,12 @@ package com.example.musicupc.services;
 
 import com.example.musicupc.entities.PagoSuscripcion;
 import com.example.musicupc.entities.Suscripcion;
+import com.example.musicupc.entities.Usuario;
 import com.example.musicupc.repositories.PagoSuscripcionRepository;
 import com.example.musicupc.repositories.SuscripcionRepository;
+import com.example.musicupc.repositories.UsuarioRepository;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,21 +21,30 @@ public class PagoSuscripcionService {
 
     private final PagoSuscripcionRepository pagoSuscripcionRepository;
     private final SuscripcionRepository suscripcionRepository;
+    private final UsuarioRepository usuarioRepository;
 
     public PagoSuscripcionService(
             PagoSuscripcionRepository pagoSuscripcionRepository,
-            SuscripcionRepository suscripcionRepository
+            SuscripcionRepository suscripcionRepository,
+            UsuarioRepository usuarioRepository
     ) {
         this.pagoSuscripcionRepository = pagoSuscripcionRepository;
         this.suscripcionRepository = suscripcionRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     public List<PagoSuscripcion> listar() {
         return pagoSuscripcionRepository.findAll();
     }
 
-    public List<PagoSuscripcion> listarPorUsuario(Long usuarioId) {
-        return pagoSuscripcionRepository.findBySuscripcionUsuarioIdOrderByFechaCreacionDesc(usuarioId);
+    public List<PagoSuscripcion> listarPorUsuario(
+            Long usuarioId,
+            Authentication authentication
+    ) {
+        validarAccesoUsuario(usuarioId, authentication);
+
+        return pagoSuscripcionRepository
+                .findBySuscripcionUsuarioIdOrderByFechaCreacionDesc(usuarioId);
     }
 
     public PagoSuscripcion listarPorId(Long id) {
@@ -40,12 +53,16 @@ public class PagoSuscripcionService {
     }
 
     @Transactional
-    public PagoSuscripcion registrar(PagoSuscripcion pago) {
+    public PagoSuscripcion registrar(
+            PagoSuscripcion pago,
+            Authentication authentication
+    ) {
         validarDatosBasicos(pago);
 
         String metodo = normalizarMetodoPago(pago.getMetodo());
         Suscripcion suscripcion = obtenerSuscripcion(pago);
 
+        validarAccesoASuscripcion(suscripcion, authentication);
         validarSuscripcionNoCancelada(suscripcion);
 
         String planSolicitado = normalizarPlan(
@@ -128,6 +145,59 @@ public class PagoSuscripcionService {
     private Suscripcion obtenerSuscripcion(PagoSuscripcion pago) {
         return suscripcionRepository.findById(pago.getSuscripcion().getId())
                 .orElseThrow(() -> new RuntimeException("Suscripción no encontrada"));
+    }
+
+    private void validarAccesoUsuario(
+            Long usuarioId,
+            Authentication authentication
+    ) {
+        if (esAdministrador(authentication)) {
+            return;
+        }
+
+        Usuario usuarioAutenticado = obtenerUsuarioAutenticado(authentication);
+
+        if (!usuarioAutenticado.getId().equals(usuarioId)) {
+            throw new AccessDeniedException("No puedes consultar pagos de otro usuario");
+        }
+    }
+
+    private void validarAccesoASuscripcion(
+            Suscripcion suscripcion,
+            Authentication authentication
+    ) {
+        if (esAdministrador(authentication)) {
+            return;
+        }
+
+        Usuario usuarioAutenticado = obtenerUsuarioAutenticado(authentication);
+
+        if (suscripcion.getUsuario() == null || suscripcion.getUsuario().getId() == null) {
+            throw new AccessDeniedException("La suscripción no tiene usuario asignado");
+        }
+
+        if (!suscripcion.getUsuario().getId().equals(usuarioAutenticado.getId())) {
+            throw new AccessDeniedException("No puedes pagar una suscripción de otro usuario");
+        }
+    }
+
+    private Usuario obtenerUsuarioAutenticado(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new AccessDeniedException("Usuario no autenticado");
+        }
+
+        return usuarioRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new AccessDeniedException("Usuario autenticado no encontrado"));
+    }
+
+    private boolean esAdministrador(Authentication authentication) {
+        if (authentication == null) {
+            return false;
+        }
+
+        return authentication.getAuthorities()
+                .stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
     }
 
     private void validarSuscripcionNoCancelada(Suscripcion suscripcion) {

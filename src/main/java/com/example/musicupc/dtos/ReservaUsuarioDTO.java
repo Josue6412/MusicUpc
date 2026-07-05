@@ -9,11 +9,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ReservaUsuarioDTO {
     private String nombre;
     private Long reservaId;
+    private String artistaNombre;
     private String status;
     private String notes;
     private LocalDate eventDate;

@@ -6,10 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 public class SuscripcionDTOInsert {
 
     private Long id;
@@ -20,5 +18,4 @@ public class SuscripcionDTOInsert {
     private LocalDate fecha_fin;
     private String estado;
     private LocalDate fecha_creacion;
-
 }

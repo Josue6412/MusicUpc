@@ -7,6 +7,7 @@ import com.example.musicupc.entities.Usuario;
 import com.example.musicupc.services.SuscripcionService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -38,8 +39,8 @@ public class SuscripcionController {
 
     @GetMapping("/usuario/{usuarioId}")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
-    public List<SuscripcionDTOList> listarPorUsuario(@PathVariable Long usuarioId) {
-        return suscripcionService.listarPorUsuario(usuarioId)
+    public List<SuscripcionDTOList> listarPorUsuario(@PathVariable Long usuarioId, Authentication authentication) {
+        return suscripcionService.listarPorUsuario(usuarioId, authentication)
                 .stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
@@ -47,11 +48,12 @@ public class SuscripcionController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
-    public SuscripcionDTOList registrar(@RequestBody SuscripcionDTOInsert dto) {
+    public SuscripcionDTOList registrar(@RequestBody SuscripcionDTOInsert dto, Authentication authentication) {
         Suscripcion suscripcion = convertirAEntidad(dto);
 
         suscripcion.setFecha_inicio(LocalDate.now());
         suscripcion.setFecha_creacion(LocalDate.now());
+
         if (suscripcion.getEstado() == null || suscripcion.getEstado().isBlank()) {
             suscripcion.setEstado("PENDIENTE");
         }
@@ -60,7 +62,7 @@ public class SuscripcionController {
             suscripcion.setFecha_fin(LocalDate.now().plusMonths(1));
         }
 
-        return convertirADTO(suscripcionService.registrar(suscripcion));
+        return convertirADTO(suscripcionService.registrar(suscripcion, authentication));
     }
 
     @PutMapping("/{id}")
