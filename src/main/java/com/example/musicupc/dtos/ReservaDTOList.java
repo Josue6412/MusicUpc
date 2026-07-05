@@ -16,6 +16,8 @@ public class ReservaDTOList {
     private Long id;
     private Long clienteId;
     private String clienteNombre;
+    private Long artistaId;
+    private String artistaNombre;
     private LocalDate fechaEvento;
     private LocalTime horaEvento;
     private String ubicacionEvento;

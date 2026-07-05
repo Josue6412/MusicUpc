@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import com.example.musicupc.entities.Artista;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,8 +49,6 @@ public class ReservaController {
 
         Reserva reserva = convertirAEntidad(dto);
 
-        // Un USUARIO solo puede reservar a su propio nombre (ignora el clienteId
-        // que venga en la petición y usa el suyo).
         if (!esAdmin) {
             Usuario yo = usuarioRepo.findByEmail(authentication.getName())
                     .orElseThrow(() -> new ResponseStatusException(
@@ -94,10 +93,20 @@ public class ReservaController {
                 ? reserva.getCliente().getNombre() + " " + reserva.getCliente().getApellido()
                 : "Sin cliente";
 
+        Long artistaId = reserva.getArtista() != null
+                ? reserva.getArtista().getId()
+                : null;
+
+        String artistaNombre = reserva.getArtista() != null
+                ? reserva.getArtista().getNombreArtistico()
+                : "Sin artista";
+
         return new ReservaDTOList(
                 reserva.getId(),
                 clienteId,
                 clienteNombre,
+                artistaId,
+                artistaNombre,
                 reserva.getFechaEvento(),
                 reserva.getHoraEvento(),
                 reserva.getUbicacionEvento(),
@@ -118,6 +127,12 @@ public class ReservaController {
         cliente.setId(dto.getClienteId());
         reserva.setCliente(cliente);
 
+        if (dto.getArtistaId() != null) {
+            Artista artista = new Artista();
+            artista.setId(dto.getArtistaId());
+            reserva.setArtista(artista);
+        }
+
         reserva.setFechaEvento(dto.getFechaEvento());
         reserva.setHoraEvento(dto.getHoraEvento());
         reserva.setUbicacionEvento(dto.getUbicacionEvento());
@@ -130,10 +145,14 @@ public class ReservaController {
     }
 
     private ReservaUsuarioDTO convertirAReservaUsuarioDTO(Reserva reserva) {
+        String artistaNombre = reserva.getArtista() != null
+                ? reserva.getArtista().getNombreArtistico()
+                : "Sin artista";
 
         return new ReservaUsuarioDTO(
                 reserva.getCliente().getNombre(),
                 reserva.getId(),
+                artistaNombre,
                 reserva.getEstado(),
                 reserva.getNotas(),
                 reserva.getFechaEvento(),

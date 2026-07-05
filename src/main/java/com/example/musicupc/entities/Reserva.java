@@ -27,6 +27,10 @@ public class Reserva {
     @JoinColumn(name = "client_id", nullable = false)
     private Usuario cliente;
 
+    @ManyToOne
+    @JoinColumn(name = "artist_id")
+    private Artista artista;
+
     @Column(name = "event_date", nullable = false)
     private LocalDate fechaEvento;
 

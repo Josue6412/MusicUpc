@@ -7,6 +7,7 @@ import com.example.musicupc.entities.Suscripcion;
 import com.example.musicupc.services.PagoSuscripcionService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -31,8 +32,8 @@ public class PagoSuscripcionController {
 
     @GetMapping("/usuario/{usuarioId}")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
-    public List<PagoSuscripcionDTOList> listarPorUsuario(@PathVariable Long usuarioId) {
-        return pagoSuscripcionService.listarPorUsuario(usuarioId)
+    public List<PagoSuscripcionDTOList> listarPorUsuario(@PathVariable Long usuarioId, Authentication authentication) {
+        return pagoSuscripcionService.listarPorUsuario(usuarioId, authentication)
                 .stream()
                 .map(this::convertirADTO)
                 .toList();
@@ -40,9 +41,9 @@ public class PagoSuscripcionController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'USUARIO')")
-    public PagoSuscripcionDTOList registrar(@RequestBody PagoSuscripcionDTOInsert dto) {
+    public PagoSuscripcionDTOList registrar(@RequestBody PagoSuscripcionDTOInsert dto, Authentication authentication) {
         PagoSuscripcion pago = convertirAEntidad(dto);
-        return convertirADTO(pagoSuscripcionService.registrar(pago));
+        return convertirADTO(pagoSuscripcionService.registrar(pago, authentication));
     }
 
     @PutMapping("/{id}")
