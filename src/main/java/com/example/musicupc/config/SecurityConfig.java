@@ -87,6 +87,7 @@ public class SecurityConfig {
         // Orígenes permitidos. Usamos patrones para cubrir localhost y despliegues.
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:4200",
+                "https://musicupc-frontend.onrender.com",
                 "http://127.0.0.1:4200",
                 "https://*.netlify.app",
                 "https://*.vercel.app"
