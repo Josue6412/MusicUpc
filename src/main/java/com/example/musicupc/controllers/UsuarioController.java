@@ -92,7 +92,7 @@ public class UsuarioController {
         Path rutaArchivo = carpeta.resolve(nombreArchivo);
         Files.write(rutaArchivo, file.getBytes());
 
-        String url = "http://localhost:8080/uploads/perfiles/" + nombreArchivo;
+        String url = "https://musicupc.onrender.com/uploads/perfiles/" + nombreArchivo;
 
         usuario.setFotoPerfil(url);
         Usuario actualizado = usuarioService.actualizar(id, usuario, true);
