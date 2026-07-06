@@ -61,6 +61,7 @@ public class SecurityConfig {
                                 "/registro",
                                 "/recuperar",
                                 "/swagger-ui/**",
+                                "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/auth/**",
                                 "/uploads/perfiles/**"
